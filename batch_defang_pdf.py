@@ -1,5 +1,9 @@
 from sys import argv, exit
+from subprocess import run
 from pathlib import Path
+
+# Change these for your own output
+ARGS_FOR_PDFTOCAIRO = "-png"
 
 # Class for PDF file objects
 class PdfFile:
@@ -9,6 +13,8 @@ class PdfFile:
         # Path of the folder to be made
         self.directory_scrubbed = str(directory).replace(str(root_directory), str(root_directory_scrubbed))
         self.directory_scrubbed = Path(self.directory_scrubbed.replace(".pdf", ""))
+        self.output_file = str(self.directory_scrubbed) + "/" + self.directory_scrubbed.name
+
 
 # INIT
 
@@ -36,7 +42,6 @@ if not root_directory_scrubbed.exists():
     root_directory_scrubbed.mkdir()
 
 
-
 # MAIN PROCESS STARTS HERE
 
 # Get list of all pdfs
@@ -45,7 +50,7 @@ if verbose:
     print("-- FOUND PDF FILES --", )
     for pdf in pdf_directory_list:
         print(pdf)
-    print("-- END OF LIST --")
+    print("Processing...")
 
 # Convert to objects and put them in a list
 pdf_list = []
@@ -53,9 +58,14 @@ for pdf_directory in pdf_directory_list:
     pdf_list.append(PdfFile(pdf_directory))
 
 
+# Iterate over each pdf
+for pdf in pdf_list:
+    # Make a folder for each file
+    if not pdf.directory_scrubbed.exists():
+        pdf.directory_scrubbed.mkdir(parents=True)
 
-# Make a directory for each file
-if verbose:
-    for pdf in pdf_list:
-        print(pdf.directory)
-        print(pdf.directory_scrubbed)
+    # Call pdftocairo on each file
+    # Usage: pdftocairo [options] <PDF-file> [<output-file>]
+    run(["pdftocairo", ARGS_FOR_PDFTOCAIRO, pdf.directory, pdf.output_file])
+    if verbose:
+        print(f"Successfully processed: {pdf.directory_scrubbed}")
