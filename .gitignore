@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# My own stuff
+bin/
+lib64
+pyvenv.cfg
+# Test folders
+test_folder/
+test_folder_bak/
+test_folder_scrubbed/
