@@ -52,16 +52,16 @@ if deconstruct == False and assemble == False:
     print(" Assemble pdfs [-a | --assemble]")
     exit()
 
-# Make a scrubbed directory if needed
-root_directory_scrubbed = Path(str(root_directory) + "_scrubbed")
-if not root_directory_scrubbed.exists():
-    root_directory_scrubbed.mkdir()
-
 
 # MAIN PROCESS STARTS HERE
 
 # DECONSTRUCT PDFS
 if deconstruct:
+    # Make a scrubbed directory if needed
+    root_directory_scrubbed = Path(str(root_directory) + "_scrubbed")
+    if not root_directory_scrubbed.exists():
+        root_directory_scrubbed.mkdir()
+    
     # Get list of all pdfs
     pdf_directory_list = sorted(root_directory.glob(r'**/*.pdf'))
     if verbose:
@@ -90,8 +90,34 @@ if deconstruct:
     print("-- Processing complete --")
 
 # ASSEMBLE PDFS
-# (not yet implemented)
+if assemble:
+    # Fix the directory if deconstructed in the same session
+    if deconstruct:
+        assembly_source_directory = Path(str(root_directory) + "_scrubbed")
+    else:
+        assembly_source_directory = root_directory
 
-# Below is the merge2pdf documentation for merging from a directory:
-#   Merge all Images/PDFs of one or multiple directory
-#   merge2pdf output.pdf path/to/a/dir path/to/another ...
+    # Get list of all .png files
+    png_list = sorted(assembly_source_directory.glob(r'**/*.png'))
+
+    # Add all unique parent directories to a list
+    png_directory_list = []
+    if verbose: print("-- FOUND PNG DIRECTORIES --")
+    for png in png_list:
+        if png.parent not in png_directory_list:
+            png_directory_list.append(png.parent)
+            if verbose: print(png.parent)
+    
+    # Call merge2pdf on each unique directory
+    for png_directory in png_directory_list:
+        # Make a folder for output if needed
+        output_directory = Path(str(png_directory).replace(str(root_directory), str(str(root_directory) + "_defanged")))
+        if not output_directory.parent.exists():
+            output_directory.parent.mkdir(parents=True)
+        
+        # Assemble pngs into a pdf
+        # Usage: merge2pdf output.pdf path/to/a/dir
+        assembled_output_file = str(output_directory) + ".pdf"
+        run(["merge2pdf", assembled_output_file, png_directory])
+
+        if verbose: print(f"Successfully processed: {assembled_output_file}")
